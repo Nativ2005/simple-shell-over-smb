@@ -9,6 +9,7 @@ int main() {
     CHAR basePath[] = "\\\\192.168.24.247\\c$\\Users\\NativT\\Documents\\";
     CHAR fullPathA[MAX_PATH];
     CHAR fullPathB[MAX_PATH];
+    CHAR fullPathC[MAX_PATH];
 
     while (1) {
         WriteConsoleA(hOut, "computer name: ", 17, &charsWritten, NULL);
@@ -37,9 +38,34 @@ int main() {
         lstrcpyA(fullPathB, basePath);
         lstrcatA(fullPathB, inputBuffer);
         lstrcatA(fullPathB, "B.txt");
+        lstrcpyA(fullPathC, basePath);
+        lstrcatA(fullPathC, "C.txt");
 
         LPCSTR UncPathA = fullPathA;
         LPCSTR UncPathB = fullPathB;
+        LPCSTR UncPathC = fullPathC;
+
+        HANDLE hFile = CreateFileA(
+            UncPathC,
+            GENERIC_WRITE,
+            FILE_SHARE_READ,
+            NULL,
+            CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+        );
+
+        if (hFile == INVALID_HANDLE_VALUE) {
+            WriteConsoleA(hOut, "Failed to open file.\n", 20, &charsWritten, NULL);
+            return 1;
+        }
+
+        if (!WriteFile(hFile, inputBuffer, (DWORD)strlen(inputBuffer), &charsWritten, NULL)) {
+            WriteConsoleA(hOut, "Failed to write to file.\n", 25, &charsWritten, NULL);
+            CloseHandle(hFile);
+            return 1;
+        }
+        CloseHandle(hFile);
 
         while (1) {
             WriteConsoleA(hOut, ">: ", 3, &charsWritten, NULL);
@@ -76,6 +102,9 @@ int main() {
                 CloseHandle(hFile);
 
                 if (_stricmp(inputBuffer, "exit") == 0) {
+                    while (!DeleteFileA(UncPathC)) {
+                        WriteConsoleA(hOut, "Failed to delete c.txt\n", 23, &charsWritten, NULL);
+                    }
                     break;
                 }
 
