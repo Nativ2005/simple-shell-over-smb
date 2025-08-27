@@ -15,11 +15,24 @@ if not exist "%FILE_A%" (
 )
 set /p cmd=<"%FILE_A%"
 
-echo %cmd% | findstr /i "^cd " >nul
+echo %cmd% | findstr /i "^cd" >nul
 if not errorlevel 1 (
-    set "arg=%cmd:~3%"
+    set "arg=!cmd:~3!"
+    if "!arg!"=="" (
+        > "%FILE_B%" echo Current directory: !CURR_DIR!
+	del "%FILE_A%"
+        goto loop
+    )
+
+    if "!arg!"==".." (
+        for %%i in ("!CURR_DIR!\..") do set "CURR_DIR=%%~fi"
+        > "%FILE_B%" echo Changed directory to !CURR_DIR!
+	del "%FILE_A%"
+        goto loop
+    )
+
     if exist "!arg!\" (
-        set "CURR_DIR=!arg!"
+        for %%i in ("!arg!") do set "CURR_DIR=%%~fi"
         > "%FILE_B%" echo Changed directory to !CURR_DIR!
 	del "%FILE_A%"
     ) else (
@@ -29,13 +42,13 @@ if not errorlevel 1 (
     goto loop
 )
 
-if /i "%cmd%"=="exit" (
+if /i "!cmd!"=="exit" (
     del "%FILE_A%"
     goto loop
 )
 
-pushd "%CURR_DIR%"
-cmd /c "%cmd%" > "%FILE_B%" 2>&1
+pushd "!CURR_DIR!"
+cmd /c "!cmd!" > "%FILE_B%" 2>&1
 del "%FILE_A%"
 goto loop
 :end
