@@ -2,12 +2,23 @@
 setlocal enabledelayedexpansion
 
 
-set "PCNAME=%COMPUTERNAME%"
-set "FILE_A=\\192.168.24.247\c$\Users\NativT\Documents\%PCNAME%A.txt"
-set "FILE_B=\\192.168.24.247\c$\Users\NativT\Documents\%PCNAME%B.txt"
+set "FILE_A=c:\Users\NativT\Documents\A.txt"
+set "FILE_B=c:\Users\NativT\Documents\B.txt"
+set "FILE_C=c:\Users\NativT\Documents\C.txt"
 set "CURR_DIR=%cd%"
+set "MYPC=%COMPUTERNAME%"
 
 
+:loopC
+if exist "%FILE_C%" (
+    set /p allowed=<"%FILE_C%"
+) else (
+    set "allowed="
+)
+if /i "!allowed!" NEQ "!MYPC!" (
+    timeout /t 1 /nobreak >nul
+    goto loopC
+)
 :loop
 if not exist "%FILE_A%" (
     timeout /t 1 /nobreak >nul
@@ -44,7 +55,7 @@ if not errorlevel 1 (
 
 if /i "!cmd!"=="exit" (
     del "%FILE_A%"
-    goto loop
+    goto loopC
 )
 
 pushd "!CURR_DIR!"
